@@ -119,7 +119,7 @@ export function useBattlePassPage() {
   }, []);
 
   const onGenerateRewardImage = useCallback(async (index: number, prompt: string) => {
-    setState(prev => ({ ...prev, isGeneratingAI: true }));
+    setState(prev => ({ ...prev, isGeneratingAI: true, error: null }));
     
     try {
       const response = await fetch('/api/ai', {
@@ -134,13 +134,24 @@ export function useBattlePassPage() {
 
       const result = await response.json();
       
-      if (result.success) {
+      if (result.success && result.data?.result) {
         onRewardChange(index, 'reward.imageUrl', result.data.result);
         onRewardChange(index, 'reward.isAIGenerated', true);
+        
+        if (result.data.isPlaceholder) {
+          setState(prev => ({ 
+            ...prev, 
+            error: 'DALL-E unavailable, generated placeholder image instead' 
+          }));
+        }
       } else {
-        setState(prev => ({ ...prev, error: result.error }));
+        setState(prev => ({ 
+          ...prev, 
+          error: result.error || 'Failed to generate image' 
+        }));
       }
     } catch (error) {
+      console.error('Error generating reward image:', error);
       setState(prev => ({ 
         ...prev, 
         error: error instanceof Error ? error.message : 'Failed to generate image'

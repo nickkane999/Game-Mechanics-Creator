@@ -13,6 +13,14 @@ export default function RewardsTab({ props }: { props: BattlePassPageProps }) {
   const [expandedReward, setExpandedReward] = useState<number | null>(null);
   const [aiPrompts, setAiPrompts] = useState<Record<number, string>>({});
 
+  const handleGenerateAI = async (index: number) => {
+    const prompt = aiPrompts[index];
+    if (prompt && handlers?.onGenerateRewardImage) {
+      await handlers.onGenerateRewardImage(index, prompt);
+      setAiPrompts(prev => ({ ...prev, [index]: '' }));
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className={getFormSectionClass()}>
@@ -25,6 +33,20 @@ export default function RewardsTab({ props }: { props: BattlePassPageProps }) {
             Add Reward
           </button>
         </div>
+
+        {state.error && (
+          <div className="mb-4 bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-lg">
+            <div className="flex items-center justify-between">
+              <p className="text-sm">{state.error}</p>
+              <button 
+                onClick={() => handlers?.onClearError()}
+                className="ml-4 text-yellow-600 hover:text-yellow-800"
+              >
+                ×
+              </button>
+            </div>
+          </div>
+        )}
 
         <div className="space-y-4">
           {rewards.map((reward, index) => (
@@ -41,6 +63,11 @@ export default function RewardsTab({ props }: { props: BattlePassPageProps }) {
                       <span className={getRewardTypeClass(reward.reward.type)}>
                         {reward.reward.type}
                       </span>
+                      {reward.reward.isAIGenerated && (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 border border-purple-200">
+                          AI Generated
+                        </span>
+                      )}
                     </div>
                     <p className="text-sm text-gray-600">{reward.reward.displayName}</p>
                     <p className="text-xs text-gray-500">{reward.xpRequired} XP required</p>
@@ -170,7 +197,7 @@ export default function RewardsTab({ props }: { props: BattlePassPageProps }) {
                           className={getSchemaFieldClass()}
                           value={reward.reward.imageUrl || ''}
                           onChange={(e) => handlers?.onRewardChange(index, 'reward.imageUrl', e.target.value)}
-                          placeholder="https://example.com/image.jpg"
+                          placeholder="https://example.com/image.jpg or /battle_pass/image.png"
                         />
                         <button
                           className={getButtonClass('secondary')}
@@ -194,6 +221,13 @@ export default function RewardsTab({ props }: { props: BattlePassPageProps }) {
                           Upload
                         </button>
                       </div>
+                      {reward.reward.imageUrl && (
+                        <p className="text-xs text-gray-500 mt-1">
+                          Current: {reward.reward.imageUrl.length > 50 ? 
+                            `${reward.reward.imageUrl.substring(0, 50)}...` : 
+                            reward.reward.imageUrl}
+                        </p>
+                      )}
                     </div>
 
                     <div className="md:col-span-2">
@@ -207,14 +241,11 @@ export default function RewardsTab({ props }: { props: BattlePassPageProps }) {
                           value={aiPrompts[index] || ''}
                           onChange={(e) => setAiPrompts(prev => ({ ...prev, [index]: e.target.value }))}
                           placeholder="Describe the image you want AI to generate..."
+                          disabled={state.isGeneratingAI}
                         />
                         <button
                           className={getButtonClass('primary')}
-                          onClick={() => {
-                            if (aiPrompts[index]) {
-                              handlers?.onGenerateRewardImage(index, aiPrompts[index]);
-                            }
-                          }}
+                          onClick={() => handleGenerateAI(index)}
                           disabled={state.isGeneratingAI || !aiPrompts[index]}
                         >
                           {state.isGeneratingAI ? 'Generating...' : 'Generate AI'}
@@ -223,6 +254,12 @@ export default function RewardsTab({ props }: { props: BattlePassPageProps }) {
                       <p className="text-xs text-gray-500 mt-1">
                         Example: "A glowing purple sword with lightning effects, game icon style"
                       </p>
+                      {state.isGeneratingAI && (
+                        <div className="mt-2 flex items-center space-x-2 text-sm text-blue-600">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                          <span>Generating your image with AI...</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
