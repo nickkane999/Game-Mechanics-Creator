@@ -36,11 +36,15 @@ export function getFormSectionClass() {
 
 export function getButtonClass(variant: 'primary' | 'secondary' | 'danger' = 'primary') {
   const variants = {
-    primary: 'bg-indigo-600 text-white hover:bg-indigo-700',
-    secondary: 'bg-gray-200 text-gray-700 hover:bg-gray-300',
-    danger: 'bg-red-600 text-white hover:bg-red-700'
+    primary: 'bg-indigo-600 hover:bg-indigo-700 text-white',
+    secondary: 'bg-gray-200 hover:bg-gray-300 text-gray-700',
+    danger: 'bg-red-600 hover:bg-red-700 text-white'
   };
   return `px-4 py-2 rounded-lg font-medium transition-colors ${variants[variant]}`;
+}
+
+export function getSqlCodeClass() {
+  return 'bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-sm mb-4 overflow-x-auto';
 }
 
 export function formatDate(dateString: string) {

@@ -10,6 +10,13 @@ export default function CurrencyTab({ props }: { props: BattlePassPageProps }) {
   const { state, handlers } = props;
   const currency = state.customizations.currency;
 
+  const handleCurrencyChange = (field: string, value: any) => {
+    handlers?.onCustomizationChange('currency', {
+      ...currency,
+      [field]: value
+    });
+  };
+
   return (
     <div className="space-y-6">
       <div className={getFormSectionClass()}>
@@ -24,7 +31,7 @@ export default function CurrencyTab({ props }: { props: BattlePassPageProps }) {
               type="text"
               className={getSchemaFieldClass()}
               value={currency.displayName}
-              onChange={(e) => handlers?.onCurrencyChange('displayName', e.target.value)}
+              onChange={(e) => handleCurrencyChange('displayName', e.target.value)}
               placeholder="e.g., Experience Points, Battle Points"
             />
             <p className="text-xs text-gray-500 mt-1">
@@ -40,7 +47,7 @@ export default function CurrencyTab({ props }: { props: BattlePassPageProps }) {
               type="text"
               className={getSchemaFieldClass()}
               value={currency.symbol}
-              onChange={(e) => handlers?.onCurrencyChange('symbol', e.target.value)}
+              onChange={(e) => handleCurrencyChange('symbol', e.target.value)}
               placeholder="e.g., XP, BP, EXP"
               maxLength={5}
             />
@@ -57,7 +64,7 @@ export default function CurrencyTab({ props }: { props: BattlePassPageProps }) {
               type="text"
               className={getSchemaFieldClass()}
               value={currency.dbAttributeName}
-              onChange={(e) => handlers?.onCurrencyChange('dbAttributeName', e.target.value)}
+              onChange={(e) => handleCurrencyChange('dbAttributeName', e.target.value)}
               placeholder="e.g., experience_points, battle_xp, total_exp"
               pattern="^[a-z][a-z0-9_]*$"
             />

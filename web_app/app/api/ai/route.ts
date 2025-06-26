@@ -28,18 +28,19 @@ export async function POST(request: NextRequest) {
     switch (type) {
       case 'reward_image':
         try {
-          const imagePrompt = `A clean, professional game reward icon: ${prompt}. Style: modern game UI icon, 256x256 pixels, clear background, vibrant colors, suitable for battle pass rewards.`;
-          
+          const imagePrompt = `A clean, professional game reward icon: ${prompt}. Style: modern game UI icon, 1024x1024 pixels, clear background, vibrant colors, suitable for battle pass rewards.`;
+
           const response = await client.images.generate({
-            model: "dall-e-2",
+            model: "dall-e-3",
             prompt: imagePrompt,
-            n: 1,
-            size: "1024x1024"
+            size: "1024x1024",
+            quality: "standard",
+            n: 1
           });
 
           const imageUrl = response.data?.[0]?.url;
           if (!imageUrl) {
-            throw new Error('No image URL returned from DALL-E');
+            throw new Error('No image URL returned from DALL-E 3');
           }
 
           const imageResponse = await fetch(imageUrl);
@@ -51,7 +52,7 @@ export async function POST(request: NextRequest) {
           const timestamp = Date.now();
           const filename = `reward_${timestamp}_${Math.random().toString(36).substring(2, 8)}.png`;
           const publicPath = path.join(process.cwd(), 'public', 'battle_pass');
-          
+
           if (!fs.existsSync(publicPath)) {
             fs.mkdirSync(publicPath, { recursive: true });
           }
@@ -67,24 +68,22 @@ export async function POST(request: NextRequest) {
               type,
               prompt,
               result: savedImageUrl,
-              originalUrl: imageUrl,
               filename,
               context,
               generatedAt: new Date().toISOString()
             }
           });
-
         } catch (imageError) {
-          console.error('DALL-E generation failed, creating placeholder:', imageError);
-          
+          console.error('DALL-E 3 generation failed, creating placeholder:', imageError);
+
           const timestamp = Date.now();
           const filename = `placeholder_${timestamp}.png`;
           const placeholderUrl = `https://via.placeholder.com/256x256/6366f1/ffffff?text=${encodeURIComponent(prompt.substring(0, 20))}`;
-          
+
           try {
             const placeholderResponse = await fetch(placeholderUrl);
             const placeholderBuffer = await placeholderResponse.arrayBuffer();
-            
+
             const publicPath = path.join(process.cwd(), 'public', 'battle_pass');
             if (!fs.existsSync(publicPath)) {
               fs.mkdirSync(publicPath, { recursive: true });
@@ -104,7 +103,6 @@ export async function POST(request: NextRequest) {
                 generatedAt: new Date().toISOString()
               }
             });
-
           } catch (placeholderError) {
             return NextResponse.json({
               success: false,
@@ -115,11 +113,11 @@ export async function POST(request: NextRequest) {
 
       case 'reward_description':
         const systemPrompt = `You are an expert game designer writing reward descriptions for a battle pass system. Create engaging, concise descriptions that make players excited about the reward. Keep descriptions under 100 characters and focus on what makes the reward special or valuable.`;
-        
+
         const result = await askAI({
           prompt,
           systemPrompt,
-          model: 'gpt-4.1-mini',
+          model: 'gpt-4.1',
           files: []
         });
 
@@ -142,11 +140,11 @@ export async function POST(request: NextRequest) {
         - Color scheme suggestions
         - Lore/story background
         Format as JSON with keys: name, description, rewards, colors, lore`;
-        
+
         const themeResult = await askAI({
           prompt: `Create a battle pass theme based on: ${prompt}`,
           systemPrompt: themeSystemPrompt,
-          model: 'gpt-4.1-mini',
+          model: 'gpt-4.1',
           files: []
         });
 

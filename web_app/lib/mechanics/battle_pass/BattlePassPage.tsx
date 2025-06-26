@@ -1,4 +1,3 @@
-
 import { useBattlePassPage } from './hooks/useBattlePassPage';
 import { TAB_CONFIG } from './config';
 import { getTabButtonClass } from './ui/ui';
@@ -6,6 +5,8 @@ import BasicInfoTab from './ui/BasicInfoTab';
 import CurrencyTab from './ui/CurrencyTab';
 import RewardsTab from './ui/RewardsTab';
 import SchemaTab from './ui/SchemaTab';
+import CreateSchemaTab from './ui/CreateSchemaTab';
+import ManageTab from './ui/ManageTab';
 import PreviewTab from './ui/PreviewTab';
 
 export default function BattlePassPage() {
@@ -23,6 +24,10 @@ export default function BattlePassPage() {
         return <RewardsTab props={props} />;
       case 'schema':
         return <SchemaTab props={props} />;
+      case 'create_schema':
+        return <CreateSchemaTab props={props} />;
+      case 'manage':
+        return <ManageTab props={props} />;
       case 'preview':
         return <PreviewTab props={props} />;
       default:
@@ -31,47 +36,27 @@ export default function BattlePassPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-4">
-              <a 
-                href="/"
-                className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                <span>←</span>
-                <span>Back to Home</span>
-              </a>
-              <div className="h-6 w-px bg-gray-300"></div>
-              <h1 className="text-xl font-semibold text-gray-900">
-                Battle Pass Creator
-              </h1>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-lg shadow-sm">
-          <div className="border-b border-gray-200 px-6 py-4">
-            <div className="flex space-x-1">
-              {Object.entries(TAB_CONFIG).map(([key, config]) => (
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-6xl mx-auto">
+        <div className="bg-white rounded-lg shadow-lg p-6">
+          <h1 className="text-2xl font-bold text-gray-900 mb-6">Battle Pass Creator</h1>
+          
+          <div className="border-b border-gray-200 mb-6">
+            <div className="flex space-x-1 overflow-x-auto">
+              {TAB_CONFIG.map((tab) => (
                 <button
-                  key={key}
-                  className={getTabButtonClass(state.activeTab === key)}
-                  onClick={() => handlers?.onTabChange(key as any)}
+                  key={tab.id}
+                  className={getTabButtonClass(state.activeTab === tab.id)}
+                  onClick={() => handlers.onTabChange(tab.id as any)}
                 >
-                  <span className="mr-2">{config.icon}</span>
-                  {config.label}
+                  <span className="mr-2">{tab.icon}</span>
+                  {tab.label}
                 </button>
               ))}
             </div>
           </div>
 
-          <div className="p-6">
-            {renderActiveTab()}
-          </div>
+          {renderActiveTab()}
         </div>
       </div>
     </div>

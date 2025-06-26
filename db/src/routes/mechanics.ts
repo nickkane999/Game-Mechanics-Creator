@@ -61,4 +61,83 @@ router.post('/generate-schema', async (req: Request, res: Response) => {
   }
 });
 
+router.post('/battle-pass/execute', async (req: Request, res: Response) => {
+  try {
+    const battlePassConfig = req.body;
+    const result = await mechanicsService.executeBattlePassSql(battlePassConfig);
+    
+    const response: ApiResponse = {
+      success: true,
+      data: result,
+      message: 'SQL statements executed successfully'
+    };
+    res.json(response);
+  } catch (error) {
+    const response: ApiResponse = {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    };
+    res.status(500).json(response);
+  }
+});
+
+router.get('/battle-pass/list', async (req: Request, res: Response) => {
+  try {
+    const result = await mechanicsService.listBattlePassSchemas();
+    
+    const response: ApiResponse = {
+      success: true,
+      data: result,
+      message: 'Battle pass schemas retrieved successfully'
+    };
+    res.json(response);
+  } catch (error) {
+    const response: ApiResponse = {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    };
+    res.status(500).json(response);
+  }
+});
+
+router.delete('/battle-pass/delete', async (req: Request, res: Response) => {
+  try {
+    const { tableName } = req.body;
+    const result = await mechanicsService.deleteBattlePassSchema(tableName);
+    
+    const response: ApiResponse = {
+      success: true,
+      data: result,
+      message: 'Battle pass schema deleted successfully'
+    };
+    res.json(response);
+  } catch (error) {
+    const response: ApiResponse = {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    };
+    res.status(500).json(response);
+  }
+});
+
+router.get('/battle-pass/details/:tableName', async (req: Request, res: Response) => {
+  try {
+    const { tableName } = req.params;
+    const result = await mechanicsService.getBattlePassSchemaDetails(tableName);
+    
+    const response: ApiResponse = {
+      success: true,
+      data: result,
+      message: 'Schema details retrieved successfully'
+    };
+    res.json(response);
+  } catch (error) {
+    const response: ApiResponse = {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    };
+    res.status(500).json(response);
+  }
+});
+
 export { router as mechanicsRoutes }; 

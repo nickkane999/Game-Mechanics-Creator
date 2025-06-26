@@ -10,6 +10,13 @@ export default function BasicInfoTab({ props }: { props: BattlePassPageProps }) 
   const { state, handlers } = props;
   const basic = state.customizations.basic;
 
+  const handleBasicChange = (field: string, value: any) => {
+    handlers?.onCustomizationChange('basic', {
+      ...basic,
+      [field]: value
+    });
+  };
+
   return (
     <div className="space-y-6">
       <div className={getFormSectionClass()}>
@@ -24,7 +31,7 @@ export default function BasicInfoTab({ props }: { props: BattlePassPageProps }) 
               type="text"
               className={getSchemaFieldClass()}
               value={basic.displayName}
-              onChange={(e) => handlers?.onBasicChange('displayName', e.target.value)}
+              onChange={(e) => handleBasicChange('displayName', e.target.value)}
               placeholder="e.g., Season 1 Battle Pass"
             />
           </div>
@@ -37,7 +44,7 @@ export default function BasicInfoTab({ props }: { props: BattlePassPageProps }) 
               type="number"
               className={getSchemaFieldClass()}
               value={basic.maxTiers}
-              onChange={(e) => handlers?.onBasicChange('maxTiers', parseInt(e.target.value))}
+              onChange={(e) => handleBasicChange('maxTiers', parseInt(e.target.value))}
               min="1"
               max="200"
             />
@@ -50,7 +57,7 @@ export default function BasicInfoTab({ props }: { props: BattlePassPageProps }) 
             <textarea
               className={getSchemaFieldClass()}
               value={basic.description}
-              onChange={(e) => handlers?.onBasicChange('description', e.target.value)}
+              onChange={(e) => handleBasicChange('description', e.target.value)}
               rows={3}
               placeholder="Describe your battle pass..."
             />
@@ -64,7 +71,7 @@ export default function BasicInfoTab({ props }: { props: BattlePassPageProps }) 
               type="number"
               className={getSchemaFieldClass()}
               value={basic.durationDays}
-              onChange={(e) => handlers?.onBasicChange('durationDays', parseInt(e.target.value))}
+              onChange={(e) => handleBasicChange('durationDays', parseInt(e.target.value))}
               min="1"
               max="365"
             />
@@ -78,7 +85,7 @@ export default function BasicInfoTab({ props }: { props: BattlePassPageProps }) 
               type="date"
               className={getSchemaFieldClass()}
               value={basic.startDate}
-              onChange={(e) => handlers?.onBasicChange('startDate', e.target.value)}
+              onChange={(e) => handleBasicChange('startDate', e.target.value)}
             />
           </div>
 
@@ -90,7 +97,7 @@ export default function BasicInfoTab({ props }: { props: BattlePassPageProps }) 
               type="date"
               className={getSchemaFieldClass()}
               value={basic.endDate}
-              onChange={(e) => handlers?.onBasicChange('endDate', e.target.value)}
+              onChange={(e) => handleBasicChange('endDate', e.target.value)}
             />
           </div>
         </div>

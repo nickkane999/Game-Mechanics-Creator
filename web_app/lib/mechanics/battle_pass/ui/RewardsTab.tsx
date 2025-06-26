@@ -13,10 +13,71 @@ export default function RewardsTab({ props }: { props: BattlePassPageProps }) {
   const [expandedReward, setExpandedReward] = useState<number | null>(null);
   const [aiPrompts, setAiPrompts] = useState<Record<number, string>>({});
 
+  const handleAddReward = () => {
+    const newReward = {
+      tier: rewards.length + 1,
+      xpRequired: (rewards.length + 1) * 100,
+      isPremium: false,
+      reward: {
+        type: 'cosmetic',
+        displayName: `Reward ${rewards.length + 1}`,
+        description: '',
+        value: '',
+        imageUrl: '',
+        isAIGenerated: false
+      }
+    };
+    
+    handlers?.onCustomizationChange('rewards', [...rewards, newReward]);
+  };
+
+  const handleRemoveReward = (index: number) => {
+    const updatedRewards = rewards.filter((_, i) => i !== index);
+    handlers?.onCustomizationChange('rewards', updatedRewards);
+  };
+
+  const handleRewardChange = (index: number, field: string, value: any) => {
+    const updatedRewards = [...rewards];
+    
+    if (field.includes('.')) {
+      const [parentField, childField] = field.split('.');
+      if (parentField === 'reward') {
+        updatedRewards[index] = {
+          ...updatedRewards[index],
+          reward: {
+            ...updatedRewards[index].reward,
+            [childField]: value
+          }
+        };
+      }
+    } else {
+      if (field === 'tier' || field === 'xpRequired' || field === 'isPremium') {
+        updatedRewards[index] = {
+          ...updatedRewards[index],
+          [field]: value
+        };
+      }
+    }
+    
+    handlers?.onCustomizationChange('rewards', updatedRewards);
+  };
+
+  const handleGenerateRewardImage = async (index: number, prompt: string) => {
+    if (handlers?.onGenerateAI) {
+      try {
+        await handlers.onGenerateAI(prompt);
+        // Note: This would need to be enhanced to handle the response and update the specific reward
+        console.log('AI image generation triggered for reward', index);
+      } catch (error) {
+        console.error('Failed to generate AI image:', error);
+      }
+    }
+  };
+
   const handleGenerateAI = async (index: number) => {
     const prompt = aiPrompts[index];
-    if (prompt && handlers?.onGenerateRewardImage) {
-      await handlers.onGenerateRewardImage(index, prompt);
+    if (prompt) {
+      await handleGenerateRewardImage(index, prompt);
       setAiPrompts(prev => ({ ...prev, [index]: '' }));
     }
   };
@@ -28,7 +89,7 @@ export default function RewardsTab({ props }: { props: BattlePassPageProps }) {
           <h3 className="text-lg font-semibold">Battle Pass Rewards</h3>
           <button
             className={getButtonClass('primary')}
-            onClick={() => handlers?.onAddReward()}
+            onClick={handleAddReward}
           >
             Add Reward
           </button>
@@ -82,7 +143,7 @@ export default function RewardsTab({ props }: { props: BattlePassPageProps }) {
                   </button>
                   <button
                     className={getButtonClass('danger')}
-                    onClick={() => handlers?.onRemoveReward(index)}
+                    onClick={() => handleRemoveReward(index)}
                   >
                     Remove
                   </button>
@@ -100,7 +161,7 @@ export default function RewardsTab({ props }: { props: BattlePassPageProps }) {
                         type="number"
                         className={getSchemaFieldClass()}
                         value={reward.tier}
-                        onChange={(e) => handlers?.onRewardChange(index, 'tier', parseInt(e.target.value))}
+                        onChange={(e) => handleRewardChange(index, 'tier', parseInt(e.target.value))}
                         min="1"
                       />
                     </div>
@@ -113,7 +174,7 @@ export default function RewardsTab({ props }: { props: BattlePassPageProps }) {
                         type="number"
                         className={getSchemaFieldClass()}
                         value={reward.xpRequired}
-                        onChange={(e) => handlers?.onRewardChange(index, 'xpRequired', parseInt(e.target.value))}
+                        onChange={(e) => handleRewardChange(index, 'xpRequired', parseInt(e.target.value))}
                         min="0"
                       />
                     </div>
@@ -126,7 +187,7 @@ export default function RewardsTab({ props }: { props: BattlePassPageProps }) {
                         type="text"
                         className={getSchemaFieldClass()}
                         value={reward.reward.displayName}
-                        onChange={(e) => handlers?.onRewardChange(index, 'reward.displayName', e.target.value)}
+                        onChange={(e) => handleRewardChange(index, 'reward.displayName', e.target.value)}
                         placeholder="e.g., Epic Sword Skin"
                       />
                     </div>
@@ -138,7 +199,7 @@ export default function RewardsTab({ props }: { props: BattlePassPageProps }) {
                       <select
                         className={getSchemaFieldClass()}
                         value={reward.reward.type}
-                        onChange={(e) => handlers?.onRewardChange(index, 'reward.type', e.target.value)}
+                        onChange={(e) => handleRewardChange(index, 'reward.type', e.target.value)}
                       >
                         <option value="cosmetic">Cosmetic</option>
                         <option value="currency">Currency</option>
@@ -154,7 +215,7 @@ export default function RewardsTab({ props }: { props: BattlePassPageProps }) {
                       <textarea
                         className={getSchemaFieldClass()}
                         value={reward.reward.description}
-                        onChange={(e) => handlers?.onRewardChange(index, 'reward.description', e.target.value)}
+                        onChange={(e) => handleRewardChange(index, 'reward.description', e.target.value)}
                         rows={2}
                         placeholder="Describe the reward..."
                       />
@@ -168,7 +229,7 @@ export default function RewardsTab({ props }: { props: BattlePassPageProps }) {
                         type="text"
                         className={getSchemaFieldClass()}
                         value={reward.reward.value}
-                        onChange={(e) => handlers?.onRewardChange(index, 'reward.value', e.target.value)}
+                        onChange={(e) => handleRewardChange(index, 'reward.value', e.target.value)}
                         placeholder="e.g., 100, skin_id_001"
                       />
                     </div>
@@ -180,7 +241,7 @@ export default function RewardsTab({ props }: { props: BattlePassPageProps }) {
                       <select
                         className={getSchemaFieldClass()}
                         value={reward.isPremium.toString()}
-                        onChange={(e) => handlers?.onRewardChange(index, 'isPremium', e.target.value === 'true')}
+                        onChange={(e) => handleRewardChange(index, 'isPremium', e.target.value === 'true')}
                       >
                         <option value="false">Free Track</option>
                         <option value="true">Premium Track</option>
@@ -196,7 +257,7 @@ export default function RewardsTab({ props }: { props: BattlePassPageProps }) {
                           type="url"
                           className={getSchemaFieldClass()}
                           value={reward.reward.imageUrl || ''}
-                          onChange={(e) => handlers?.onRewardChange(index, 'reward.imageUrl', e.target.value)}
+                          onChange={(e) => handleRewardChange(index, 'reward.imageUrl', e.target.value)}
                           placeholder="https://example.com/image.jpg or /battle_pass/image.png"
                         />
                         <button
@@ -210,7 +271,7 @@ export default function RewardsTab({ props }: { props: BattlePassPageProps }) {
                               if (file) {
                                 const reader = new FileReader();
                                 reader.onload = (e) => {
-                                  handlers?.onRewardChange(index, 'reward.imageUrl', e.target?.result);
+                                  handleRewardChange(index, 'reward.imageUrl', e.target?.result);
                                 };
                                 reader.readAsDataURL(file);
                               }
@@ -272,7 +333,7 @@ export default function RewardsTab({ props }: { props: BattlePassPageProps }) {
               <p className="mb-4">No rewards added yet</p>
               <button
                 className={getButtonClass('primary')}
-                onClick={() => handlers?.onAddReward()}
+                onClick={handleAddReward}
               >
                 Add Your First Reward
               </button>

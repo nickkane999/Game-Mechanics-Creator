@@ -6,6 +6,7 @@ import {
   SchemaAttribute,
   GameMechanicSchema
 } from '../types/index';
+import { pool } from '../config/database';
 
 export class MechanicsService {
   
@@ -55,6 +56,184 @@ export class MechanicsService {
         { name: 'season_id', type: 'VARCHAR', required: true, constraints: { maxLength: 20 } }
       ]
     };
+  }
+
+  async executeBattlePassSql(battlePassConfig: any): Promise<any> {
+    const results = {
+      createResult: null as any,
+      insertResult: null as any,
+      errors: [] as string[],
+      executedAt: new Date().toISOString()
+    };
+
+    try {
+      const schema = battlePassConfig.schema;
+      const tableName = schema.tableName;
+
+      const createSql = `CREATE TABLE IF NOT EXISTS ${tableName} (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  ${schema.userIdField} VARCHAR(255) NOT NULL,
+  ${schema.usernameField} VARCHAR(255) NOT NULL,
+  ${schema.tierField} INT NOT NULL DEFAULT 0,
+  ${schema.xpField} BIGINT NOT NULL DEFAULT 0,
+  ${schema.premiumField} BOOLEAN NOT NULL DEFAULT FALSE,
+  ${schema.seasonIdField} VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY unique_user_season (${schema.userIdField}, ${schema.seasonIdField}),
+  INDEX idx_season (${schema.seasonIdField}),
+  INDEX idx_tier (${schema.tierField})
+)`;
+
+      console.log('Executing CREATE TABLE:', createSql);
+      const [createResult] = await pool.execute(createSql);
+      results.createResult = {
+        message: 'Table created successfully',
+        affectedRows: (createResult as any).affectedRows || 0,
+        sql: createSql
+      };
+
+      const insertSql = `INSERT IGNORE INTO ${tableName} (
+  ${schema.userIdField}, ${schema.usernameField}, ${schema.tierField},
+  ${schema.xpField}, ${schema.premiumField}, ${schema.seasonIdField}
+) VALUES
+  (?, ?, ?, ?, ?, ?),
+  (?, ?, ?, ?, ?, ?),
+  (?, ?, ?, ?, ?, ?),
+  (?, ?, ?, ?, ?, ?),
+  (?, ?, ?, ?, ?, ?)`;
+
+      const insertValues = [
+        'user_001', 'PlayerOne', 15, 1500, true, 'season_2024_01',
+        'user_002', 'GamerTwo', 8, 800, false, 'season_2024_01',
+        'user_003', 'ProPlayer', 25, 2500, true, 'season_2024_01',
+        'user_004', 'CasualGamer', 3, 300, false, 'season_2024_01',
+        'user_005', 'CompetitivePro', 50, 5000, true, 'season_2024_01'
+      ];
+
+      console.log('Executing INSERT:', insertSql);
+      const [insertResult] = await pool.execute(insertSql, insertValues);
+      results.insertResult = {
+        message: 'Sample data inserted successfully',
+        affectedRows: (insertResult as any).affectedRows || 0,
+        insertedRows: 5,
+        sql: insertSql
+      };
+
+      const [selectResult] = await pool.execute(`SELECT * FROM ${tableName} LIMIT 10`);
+      results.insertResult.sampleData = selectResult;
+
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      results.errors.push(errorMessage);
+      console.error('SQL Execution Error:', error);
+      throw error;
+    }
+
+    return results;
+  }
+
+  async listBattlePassSchemas(): Promise<any[]> {
+    try {
+      const [rows] = await pool.execute(`
+        SELECT 
+          TABLE_NAME as table_name,
+          TABLE_ROWS as table_rows,
+          CREATE_TIME as create_time,
+          ENGINE as engine,
+          TABLE_COLLATION as table_collation
+        FROM information_schema.TABLES 
+        WHERE TABLE_SCHEMA = DATABASE() 
+        AND (TABLE_NAME LIKE '%battle_pass%' OR TABLE_NAME LIKE '%battlepass%')
+        ORDER BY CREATE_TIME DESC
+      `);
+
+      return rows as any[];
+    } catch (error) {
+      console.error('Error listing battle pass schemas:', error);
+      throw error;
+    }
+  }
+
+  async deleteBattlePassSchema(tableName: string): Promise<any> {
+    try {
+      if (!tableName || tableName.trim() === '') {
+        throw new Error('Table name is required');
+      }
+
+      const sanitizedTableName = tableName.replace(/[^a-zA-Z0-9_]/g, '');
+      
+      if (sanitizedTableName !== tableName) {
+        throw new Error('Invalid table name format');
+      }
+
+      const [result] = await pool.execute(`DROP TABLE IF EXISTS ${sanitizedTableName}`);
+      
+      return {
+        message: `Table ${tableName} deleted successfully`,
+        deletedTable: tableName,
+        result: result
+      };
+    } catch (error) {
+      console.error('Error deleting battle pass schema:', error);
+      throw error;
+    }
+  }
+
+  async getBattlePassSchemaDetails(tableName: string): Promise<any> {
+    try {
+      if (!tableName || tableName.trim() === '') {
+        throw new Error('Table name is required');
+      }
+
+      const sanitizedTableName = tableName.replace(/[^a-zA-Z0-9_]/g, '');
+      
+      if (sanitizedTableName !== tableName) {
+        throw new Error('Invalid table name format');
+      }
+
+      // Get table information
+      const [tableInfo] = await pool.execute(`
+        SELECT 
+          TABLE_NAME as tableName,
+          TABLE_ROWS as rowCount,
+          CREATE_TIME as createTime,
+          ENGINE as engine,
+          TABLE_COLLATION as collation
+        FROM information_schema.TABLES 
+        WHERE TABLE_SCHEMA = DATABASE() 
+        AND TABLE_NAME = ?
+      `, [tableName]);
+
+      if (!Array.isArray(tableInfo) || tableInfo.length === 0) {
+        throw new Error('Table not found');
+      }
+
+      // Get column information
+      const [columns] = await pool.execute(`
+        DESCRIBE ${sanitizedTableName}
+      `);
+
+      // Get index information
+      const [indexes] = await pool.execute(`
+        SHOW INDEX FROM ${sanitizedTableName}
+      `);
+
+      // Get sample data (first 5 rows)
+      const [sampleData] = await pool.execute(`
+        SELECT * FROM ${sanitizedTableName} LIMIT 5
+      `);
+
+      return {
+        ...tableInfo[0],
+        columns: columns,
+        indexes: indexes,
+        sampleData: sampleData
+      };
+    } catch (error) {
+      console.error('Error getting schema details:', error);
+      throw error;
+    }
   }
 
   async generateSchema(request: SchemaGenerationRequest): Promise<SchemaGenerationResponse> {

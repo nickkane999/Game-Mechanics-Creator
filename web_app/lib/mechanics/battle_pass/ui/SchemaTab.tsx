@@ -10,6 +10,13 @@ export default function SchemaTab({ props }: { props: BattlePassPageProps }) {
   const { state, handlers } = props;
   const schema = state.customizations.schema;
 
+  const handleSchemaChange = (field: string, value: any) => {
+    handlers?.onCustomizationChange('schema', {
+      ...schema,
+      [field]: value
+    });
+  };
+
   const previewData = [
     {
       [schema.userIdField]: 'user_123',
@@ -43,7 +50,7 @@ export default function SchemaTab({ props }: { props: BattlePassPageProps }) {
               type="text"
               className={getSchemaFieldClass()}
               value={schema.tableName}
-              onChange={(e) => handlers?.onSchemaChange('tableName', e.target.value)}
+              onChange={(e) => handleSchemaChange('tableName', e.target.value)}
               placeholder="e.g., battle_pass_progress"
             />
           </div>
@@ -56,7 +63,7 @@ export default function SchemaTab({ props }: { props: BattlePassPageProps }) {
               type="text"
               className={getSchemaFieldClass()}
               value={schema.userIdField}
-              onChange={(e) => handlers?.onSchemaChange('userIdField', e.target.value)}
+              onChange={(e) => handleSchemaChange('userIdField', e.target.value)}
               placeholder="e.g., user_id, player_id"
             />
           </div>
@@ -69,7 +76,7 @@ export default function SchemaTab({ props }: { props: BattlePassPageProps }) {
               type="text"
               className={getSchemaFieldClass()}
               value={schema.usernameField}
-              onChange={(e) => handlers?.onSchemaChange('usernameField', e.target.value)}
+              onChange={(e) => handleSchemaChange('usernameField', e.target.value)}
               placeholder="e.g., username, display_name"
             />
           </div>
@@ -82,7 +89,7 @@ export default function SchemaTab({ props }: { props: BattlePassPageProps }) {
               type="text"
               className={getSchemaFieldClass()}
               value={schema.tierField}
-              onChange={(e) => handlers?.onSchemaChange('tierField', e.target.value)}
+              onChange={(e) => handleSchemaChange('tierField', e.target.value)}
               placeholder="e.g., current_tier, tier_level"
             />
           </div>
@@ -95,7 +102,7 @@ export default function SchemaTab({ props }: { props: BattlePassPageProps }) {
               type="text"
               className={getSchemaFieldClass()}
               value={schema.xpField}
-              onChange={(e) => handlers?.onSchemaChange('xpField', e.target.value)}
+              onChange={(e) => handleSchemaChange('xpField', e.target.value)}
               placeholder="e.g., total_xp, experience_points"
             />
           </div>
@@ -108,7 +115,7 @@ export default function SchemaTab({ props }: { props: BattlePassPageProps }) {
               type="text"
               className={getSchemaFieldClass()}
               value={schema.premiumField}
-              onChange={(e) => handlers?.onSchemaChange('premiumField', e.target.value)}
+              onChange={(e) => handleSchemaChange('premiumField', e.target.value)}
               placeholder="e.g., premium_purchased, has_premium"
             />
           </div>
@@ -121,7 +128,7 @@ export default function SchemaTab({ props }: { props: BattlePassPageProps }) {
               type="text"
               className={getSchemaFieldClass()}
               value={schema.seasonIdField}
-              onChange={(e) => handlers?.onSchemaChange('seasonIdField', e.target.value)}
+              onChange={(e) => handleSchemaChange('seasonIdField', e.target.value)}
               placeholder="e.g., season_id, battle_pass_season"
             />
           </div>
@@ -161,7 +168,7 @@ export default function SchemaTab({ props }: { props: BattlePassPageProps }) {
           {state.schemaResult && (
             <button
               className={getButtonClass('secondary')}
-              onClick={() => handlers?.onExportSchema()}
+              onClick={() => console.log('Export schema functionality not implemented yet')}
             >
               Export Schema
             </button>
