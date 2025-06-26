@@ -1,0 +1,5 @@
+# db
+/db/.env*
+
+# web_app
+/web_app/.env*
